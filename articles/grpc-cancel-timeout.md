@@ -3,7 +3,7 @@ title: "gRPC(Go)のキャンセルおよびHTTPサーバーと組み合わせた
 emoji: "😸" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["golang", "grpc"] # タグ。["markdown", "rust", "aws"]のように指定する
-published: false # 公開設定（falseにすると下書き）
+published: true # 公開設定（falseにすると下書き）
 ---
 
 裏ではgRPCで別サービスと通信するようなRESTful APIサーバーをよく書くのですが、HTTPのコネクションが切れたときに、その先では何が起きているのかあまり理解できていなかったので、サンプルコードを書きつつ調べてみました。
