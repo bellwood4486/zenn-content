@@ -2,7 +2,7 @@
 title: "DockerでPostgreSQLとpsqlを動かす"
 emoji: "🙆"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: ["postgresql"]
+topics: ["postgresql", "docker"]
 published: false
 ---
 
@@ -49,7 +49,7 @@ docker run -it --rm --network some-network postgres:11 psql -h some-postgres -U 
 
 ## 経緯メモ
 
-以下は、最終的なコマンドに至るまでの調査の流れや、自分の理解が曖昧だったた箇所のメモです。読み飛ばしてもらって構いません。
+以下は、最終的な結果に至るまでの調査の流れや、自分の理解が曖昧だった箇所のメモです。読み飛ばしてもらって構いません。
 
 まず、コンテナイメージを取ってきます。  
 PostgreSQLのオフィシャルイメージはこちらにあります。
@@ -89,21 +89,21 @@ e27d19bd233f   none      null      local
 960c2f13845b115ebf5b9264a8ba9e40fd2ef87191b36c1d4739b432f0041009
 ```
 
-めでたく起動したので、psqlから繋いでみます。  
+psqlから繋いでみます。  
 ホスト名(`some-postgres`)が見つからないエラーになりました…。
 ```shell
 ❯ docker run -it --rm postgres psql -h some-postgres -U postgres
 psql: error: could not translate host name "some-postgres" to address: Name or service not known
 ```
 
-そもそもDockerがDNSをどうやって解決しているかわかってないので、またマニュアルを読んでいきます。
+Dockerがどうやって名前を解決しているかがそもそもわかってないので、またマニュアルを読んでいきます。
 http://docs.docker.jp/v19.03/engine/userguide/networking/dockernetworks.html#docker-dns
 
-このように書かれています。
+このように書かれていました。
 > Docker デーモンは内蔵 DNS サーバを動かし、ユーザ定義ネットワーク上でコンテナがサービス・ディスカバリを自動的に行えるようにします。
 
-「ユーザー定義ネットワーク」とあるので、ホスト名で解決したければDockerのネットワークを作っておく必要がありそうな雰囲気。
-ググって見つけた以下の記事でもネットワークを作っているので、この理解は間違ってなさそうです。
+「ユーザー定義ネットワーク」とあるので、ホスト名で解決したければDockerのネットワークを自分で作っておく必要がありそうな雰囲気。
+ググって見つけた以下の記事でもネットワークを作っているので、この理解は間違ってなさそうです。(参考にさせていただきました！ありがとうございます！)
 https://qiita.com/yackrru/items/fe5294e9dd74ea0c4ce3
 
 ということでネットワークを作っていきます。ネットワーク関連のコマンドは [こちら](http://docs.docker.jp/v19.03/engine/userguide/networking/work-with-networks.html) に載っています。
@@ -111,7 +111,8 @@ https://qiita.com/yackrru/items/fe5294e9dd74ea0c4ce3
 ❯ docker network create some-network
 16bdc928a8fcc027447b1ed6ad630b8a13cead57ed7306cccfc1925789d374da
 ```
-ちなみに`docker network inspect {ネットワーク名}`で、作成したネットワークの詳細を確認できます。無事作れたようです。
+
+ちなみに`docker network inspect {ネットワーク名}`で、作成したネットワークの詳細を確認できます。
 ```json
 ❯ docker network inspect some-network
 [
@@ -146,7 +147,7 @@ https://qiita.com/yackrru/items/fe5294e9dd74ea0c4ce3
 ]
 ```
 
-このネットワークを使って再度、PostgreSQLとpsqlを立ち上げてみます。
+このネットワークを使い、再度PostgreSQLとpsqlを立ち上げてみます。
 ネットワークの指定は`-h`オプションでできます。
 ```
   -h, --hostname string                Container host name
