@@ -3,7 +3,7 @@ title: "PostgreSQLとpsqlの使い捨て環境を立ち上げる"
 emoji: "🐳"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["postgresql", "docker"]
-published: false
+published: true
 ---
 
 使い捨ての実験環境として、PostgreSQLとpsqlをDockerコンテナ上で動かしたときの記録です。
