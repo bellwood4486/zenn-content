@@ -1,12 +1,13 @@
 ---
-title: "DockerでPostgreSQLとpsqlを動かす"
-emoji: "🙆"
+title: "PostgreSQLとpsqlの使い捨て環境を立ち上げる"
+emoji: "🐳"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["postgresql", "docker"]
 published: false
 ---
 
-PostgreSQLとpsqlをdockerコンテナ上で動かそうとした際、環境構築にちょっと手間取ったのでやったことの記録です。
+使い捨ての実験環境として、PostgreSQLとpsqlをDockerコンテナ上で動かしたときの記録です。
+仕事だと便利な環境がすでに用意されており、いざ自分で作ろうとしたら思いの外ちゃんとわかってないことも多く、手こずってしまったためメモしておきます。
 
 ## 環境
 
@@ -14,7 +15,9 @@ PostgreSQLとpsqlをdockerコンテナ上で動かそうとした際、環境構
 * Docker Desktop for Mac 4.3.2
 * PostgreSQL 11.14
 
-## PostgreSQLをコンテナ上に立ち上げる
+## 結論
+
+### PostgreSQLをコンテナ上に立ち上げる
 
 PostgreSQL 11であれば、以下の流れで立ち上げることができます。
 
@@ -39,7 +42,7 @@ docker run --rm --name some-postgres -h some-postgres --network some-network -e 
 * Dockerのネットワーク: `some-network` (`--network`オプションの値)
 * PostgreSQLのパスワード: `mysecretpassword` (`POSTGRES_PASSWORD`環境変数の値)
 
-## psqlをコンテナ上で起動する
+### psqlをコンテナ上で起動する
 
 前述の方式で起動したPostgreSQLであれば、以下のコマンドでpsqlを起動し接続することができます。
 
