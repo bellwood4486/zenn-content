@@ -7,4 +7,4 @@ upgrade:
 	npm install zenn-cli@latest
 
 new:
-	npx zenn new:art
+	npx zenn new:article
