@@ -121,16 +121,32 @@ read committed
 ### 変更方法
 
 では、次に分離レベルを変更する方法です。  
-変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) からできるようなので試してみます。
+変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) を使い、次のようにしていするとできるようです。
+```
+SET TRANSACTION ISOLATION LEVEL {変更したい分離レベル}
+```
+分離レベルには次の4つが指定できます。
+* `SERIALIZABLE`
+* `REPEATABLE READ`
+* `READ COMMITTED`
+* `READ UNCOMMITTED`
 
+試してみます。(`REPEATABLE READ`に変える)
 ```
 example=# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 WARNING:  SET TRANSACTION can only be used in transaction blocks
 SET
 ```
 
+警告が出ました。どうやらトランザクション内でないと、このコマンドは使えないようです。  
+`SHOW`コマンドで確認してみるとたしかに変わっていませんでした。
+
+では、トランザクション内なら変更できるか確認してみます。
 
 
+```
+
+```
 
 ## ダーティリード
 
