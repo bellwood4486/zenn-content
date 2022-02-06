@@ -121,15 +121,35 @@ read committed
 ### 変更方法
 
 では、次に分離レベルを変更する方法です。  
-変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) を使い、次のようにしていするとできるようです。
+結論としては、**トランザクションを開始してから**次のコマンドを実行すると変更できます。
 ```
 SET TRANSACTION ISOLATION LEVEL {変更したい分離レベル}
 ```
+
 分離レベルには次の4つが指定できます。
 * `SERIALIZABLE`
 * `REPEATABLE READ`
 * `READ COMMITTED`
 * `READ UNCOMMITTED`
+
+なお、トランザクションの開始と分離レベルの指定は、次のように一つのコマンドにすることもできます。
+```
+example=# BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN
+example=# SHOW TRANSACTION ISOLATION LEVEL;
+ transaction_isolation
+-----------------------
+ repeatable read
+(1 row)
+```
+
+以降は、調べた経緯なので読み飛ばしてもらって構いません。
+
+変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) を使い、次のようにしていするとできるようです。
+```
+SET TRANSACTION ISOLATION LEVEL {変更したい分離レベル}
+```
+(指定できる分離レベルは前述)
 
 試してみます。(`REPEATABLE READ`に変える)
 ```
@@ -147,6 +167,27 @@ SET
 ```
 example=# BEGIN;
 BEGIN
+```
+
+ここで再度`SET TRANSACTION`コマンドを実行してみます。今度は警告は出ず終わりました。
+```
+example=# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SET
+```
+
+分離レベルを確認すると、今度は`repeatable read`に変わっています。
+```
+example=# SHOW TRANSACTION ISOLATION LEVEL;
+transaction_isolation
+-----------------------
+repeatable read
+(1 row)
+```
+
+もろもろ確認できたのでロールバックしておきます。
+```
+example=# ROLLBACK;
+ROLLBACK
 ```
 
 ## ダーティリード
