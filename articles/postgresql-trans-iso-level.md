@@ -10,30 +10,130 @@ published: false
 
 しばらく積読していた「データ指向アプリケーションデザイン」を読み終え、わかったようでわかってなかった「トランザクション分離レベル」がついにわかるかも！？熱が高まってきてたときに、こちらの記事と出会い、理解の確認がてらPostgreSQLで試してみました。
 
+https://blog.amedama.jp/entry/mysql-innodb-tx-iso-levels
+
 ## 環境
 * macOS 10.15.7
 * Docker Desktop for Mac 4.3.2
 * PostgreSQL 11.14
 
-セットアップはこちらを参照。
-https://zenn.dev/bellwood4486/articles/postgresql-psql-docker
-
 ## トランザクション分離レベル
 
-PostgreSQLのトランザクション分離レベルについては、公式ドキュメントのここに書かれています。
+PostgreSQLのトランザクション分離レベル(以下「分離レベル」)については、公式ドキュメントのここに書かれています。
 https://www.postgresql.jp/docs/11/transaction-iso.html
 
 ANSI/ISO SQL標準では次の4つの分離レベルが定義されています。
-* Read uncommitted
-* Read committed
-* Repeatable read
-* Serializable
+* リードアンコミッティド(Read uncommitted)
+* リードコミッティド(Read committed)
+* リピータブルリード(Repeatable read)
+* シリアライザブル(Serializable)
+
+[PostgreSQLのマニュアル 13.2.1](https://www.postgresql.jp/docs/11/transaction-iso.html) には以下のようにかかれており、デフォルトの分離レベルはリードミコッティドです。
+> PostgreSQLではリードコミッティドがデフォルトの分離レベルです。
 
 PostgreSQLでは、各種レベルにおける禁止される4つの現象が示されています。
-* dirty Read
-* nonrepeatable Read
-* phantom read
-* serialization anomaly
+* ダーティリード(Dirty Read)
+* 反復不可能読み取り(Nonrepeatable Read)
+* ファントムリード(Phantom Read)
+* 直列化異常(Serialization Anomaly)
+
+表にするとこうなります。
+
+| 分離レベル       | ダーティリード                  | 反復不可能読み取り | ファントムリード                 | 直列化異常 |
+|-------------|--------------------------|-----------|--------------------------|-------|
+| リードアンコミッティド | 許容されるが、PostgreSQLでは発生しない | 可能性あり     | 可能性あり                    | 可能性あり |
+| リードコミッティド   | 安全                       | 可能性あり     | 可能性あり                    | 可能性あり |
+| リピータブルリード   | 安全                       | 安全        | 許容されるが、PostgreSQLでは発生しない | 可能性あり |
+| シリアライザブル    | 安全                       | 安全        | 安全                       | 安全    |
+
+
+## セットアップ
+
+今回、PostgreSQLとそのクライアントのpsqlはDockerコンテナとして立ち上げました。
+その手順はこちらを参照してください。
+https://zenn.dev/bellwood4486/articles/postgresql-psql-docker
+
+[参考にさせていただいた記事](https://blog.amedama.jp/entry/mysql-innodb-tx-iso-levels)と合わせてデータベースとテーブルを作っていきます。
+
+psqlで接続し、最初に`example`というデータベースを作ります。
+```
+postgres=# CREATE DATABASE example;
+CREATE DATABASE
+```
+メタコマンドの`\c`(または`\connect`)で、作成したデータベースに接続します。
+```
+postgres=# \c example
+You are now connected to database "example" as user "postgres".
+```
+(メタコマンドの詳細は [マニュアル](https://www.postgresql.jp/document/11/html/app-psql.html) を参照ください)
+
+次に`users`テーブルを作っていきます。
+```
+example=# CREATE TABLE users (
+example(# id INTEGER PRIMARY KEY,
+example(# name VARCHAR(32) NOT NULL
+example(# );
+CREATE TABLE
+```
+
+メタコマンド`\dt`でテーブル一覧を見てみます。無事できているようです。
+```
+example=# \dt
+         List of relations
+ Schema | Name  | Type  |  Owner
+--------+-------+-------+----------
+ public | users | table | postgres
+(1 row)
+```
+
+テスト用のデータを1つ作っておきます。
+```
+example=# INSERT INTO users VALUES (1, 'Alice');
+INSERT 0 1
+```
+ちゃんとできてますね。
+```
+example=# SELECT * FROM users;
+ id | name
+----+-------
+  1 | Alice
+(1 row)
+```
+
+## トランザクション分離レベルの確認および変更方法
+
+テストを始める前に、分離レベルの確認および、それを変更する方法を調べておきます。
+
+### 確認方法
+
+[`SHOW`コマンド](https://www.postgresql.jp/docs/11/sql-show.html) を使うと、現在の分離レベルを確認できるようです。このコマンドは、実行時のパラメータの現在の設定を表示してくれます。  
+[こちら](https://oss-db.jp/dojo/dojo_info_07) を見る限り、`SHOW`コマンドには`TRANSACTION ISOLATION LEVEL`を指定します。
+
+さっそく確認してみましょう。デフォルトの分離レベルである`リードコミッティド(Read committed)`になっていました。
+```
+example=# SHOW TRANSACTION ISOLATION LEVEL;
+transaction_isolation
+-----------------------
+read committed
+(1 row)
+```
+
+### 変更方法
+
+では、次に分離レベルを変更する方法です。  
+変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) からできるようなので試してみます。
+
+```
+example=# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+WARNING:  SET TRANSACTION can only be used in transaction blocks
+SET
+```
+
+
+
+
+## ダーティリード
+
 
 
 
@@ -43,3 +143,4 @@ PostgreSQLでは、各種レベルにおける禁止される4つの現象が示
 * [MySQL の InnoDB でトランザクション分離レベルの違いを試す - CUBE SUGAR CONTAINER](https://blog.amedama.jp/entry/mysql-innodb-tx-iso-levels)
 * [13.2. トランザクションの分離](https://www.postgresql.jp/docs/11/transaction-iso.html)
 * [トランザクション分離レベル - Wikipedia](https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%A9%E3%83%B3%E3%82%B6%E3%82%AF%E3%82%B7%E3%83%A7%E3%83%B3%E5%88%86%E9%9B%A2%E3%83%AC%E3%83%99%E3%83%AB)
+* [第7回　トランザクション](https://oss-db.jp/dojo/dojo_info_07)
