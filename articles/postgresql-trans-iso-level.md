@@ -138,14 +138,15 @@ WARNING:  SET TRANSACTION can only be used in transaction blocks
 SET
 ```
 
-警告が出ました。どうやらトランザクション内でないと、このコマンドは使えないようです。  
-`SHOW`コマンドで確認してみるとたしかに変わっていませんでした。
+警告が出ました(`WARNING: `の部分)。  
+どうやらトランザクション内でないと、このコマンドは使えないようです。たしかに`SHOW`コマンドで確認してみても変わっていませんでした。
 
-では、トランザクション内なら変更できるか確認してみます。
+では、トランザクション内なら変更できるかを確認してみます。
 
-
+まずトランザクションを開始します。([`START TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-start-transaction.html) でもよいですが、今回はタイプの少ない [`BEGIN`コマンド](https://www.postgresql.jp/docs/11/sql-begin.html) の方を使います)
 ```
-
+example=# BEGIN;
+BEGIN
 ```
 
 ## ダーティリード
