@@ -252,7 +252,55 @@ ROLLBACK
 
 ## 反復不可能読み取り
 
+次に、反復不可能読み取り(Nonrepeatable Read)を見ていきます。
+マニュアルの定義は以下のとおりです。
+> 反復不能読み取り
+トランザクションが、以前読み込んだデータを再度読み込み、そのデータが(最初の読み込みの後にコミットした)別のトランザクションによって更新されたことを見出す。 
+
+「[13.2. トランザクションの分離](https://www.postgresql.jp/docs/11/transaction-iso.html)」より
+
+前述の表で「可能性あり」となっているリードコミッティド分離レベルで起きることをまず確認してみます。
+client1, client2ともに、リードコミッティド分離レベルでトランザクションを開始します。
+```
+example=# BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN
+```
+
+clinet1で名前を変更します(`Alice`->`Carol`)。まだコミットはしません。
+```
+example=# UPDATE users SET name = 'Carol' WHERE id = 1;
+UPDATE 1
+```
+
+この時点ではまだclient2からは`Alice`が見えています。
+```
+example=# SELECT * FROM users;
+ id | name
+----+-------
+  1 | Alice
+(1 row)
+```
+
+client1でコミットしてみます。
+```
+example=# COMMIT;
+COMMIT
+```
+
+client2で再度名前を確認すると`Carol`に変わっています。他のトランザクションのコミットが反映されたことがわかります。
+```
+example=# SELECT * FROM users;
+ id | name
+----+-------
+  1 | Carol
+(1 row)
+```
+リードコミッティド分離レベルでは反復不可能読み取りが起きることを確認できました。この分離レベルでは同じ行を取るクエリを2回実行しても、同じ結果になるとは限らないということです。
+
 ## ファントムリード
+
+
+
 
 ## 直列化異常
 
