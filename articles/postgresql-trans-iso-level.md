@@ -299,8 +299,49 @@ example=# SELECT * FROM users;
 
 ## ファントムリード
 
+次に、ファントムリードを見ていきます。
+マニュアルの定義は以下のとおりです。
+> ファントムリード
+トランザクションが、複数行のある集合を返す検索条件で問い合わせを再実行した時、別のトランザクションがコミットしてしまったために、同じ検索条件で問い合わせを実行しても異なる結果を得てしまう。
 
+「[13.2. トランザクションの分離](https://www.postgresql.jp/docs/11/transaction-iso.html)」より
 
+標準SQLの定義上はリピータブルリード分離レベル以下で起きうることになっています。ただ前述の通り、PostgreSQLでは実装上リピータブルリードで起きないため、そのひとつ下のレベルのリードコミッティドでこの現象を確認します。
+
+client1, client2ともに、リードコミッティド分離レベルでトランザクションを開始します。
+```
+example=# BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+BEGIN
+```
+
+client1から、id=1の行を削除します。まだコミットはしません。
+```
+example=# DELETE FROM users WHERE id = 1;
+DELETE 1
+```
+
+この時点ではclient2からはまだid=1の行が見えています。
+```
+example=# SELECT * FROM users;
+ id | name
+----+-------
+  1 | Alice
+(1 row)
+```
+
+client1でコミットします。
+```
+example=# COMMIT;
+COMMIT
+```
+
+client2で再度確認するとid=1の行が消えており、別トランザクションの変更が反映されたことがわかります。
+```
+example=# SELECT * FROM users;
+ id | name
+----+------
+(0 rows)
+```
 
 ## 直列化異常
 
