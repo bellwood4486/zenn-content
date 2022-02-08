@@ -19,7 +19,7 @@ https://blog.amedama.jp/entry/mysql-innodb-tx-iso-levels
 
 ## トランザクション分離レベル
 
-PostgreSQLのトランザクション分離レベル(以下「分離レベル」)については、公式ドキュメントのここに書かれています。
+PostgreSQLのトランザクション分離レベル(以下「分離レベル」)については、マニュアルのここに書かれています。
 https://www.postgresql.jp/docs/11/transaction-iso.html
 
 ANSI/ISO SQL標準では次の4つの分離レベルが定義されています。
@@ -28,7 +28,7 @@ ANSI/ISO SQL標準では次の4つの分離レベルが定義されています�
 * リピータブルリード(Repeatable read)
 * シリアライザブル(Serializable)
 
-[PostgreSQLのマニュアル 13.2.1](https://www.postgresql.jp/docs/11/transaction-iso.html) には以下のようにかかれており、デフォルトの分離レベルはリードミコッティドです。
+[PostgreSQLのマニュアル 13.2.1](https://www.postgresql.jp/docs/11/transaction-iso.html)には以下のようにかかれており、デフォルトの分離レベルはリードミコッティドです。
 > PostgreSQLではリードコミッティドがデフォルトの分離レベルです。
 
 PostgreSQLでは、各種レベルにおける禁止される4つの現象が示されています。
@@ -46,6 +46,19 @@ PostgreSQLでは、各種レベルにおける禁止される4つの現象が示
 | リピータブルリード   | 安全                       | 安全        | 許容されるが、PostgreSQLでは発生しない | 可能性あり |
 | シリアライザブル    | 安全                       | 安全        | 安全                       | 安全    |
 
+この表の2箇所に「許容されるが、PostgreSQLでは発生しない」とあります。
+これについて、マニュアルでは次のように書かれています。
+> より厳密な動作をすることは標準SQLでも許されています。 つまり、この4つの分離レベルでは、発生してはならない事象のみが定義され、発生しなければならない事象は定義されていません。
+
+「[13.2. トランザクションの分離](https://www.postgresql.jp/docs/11/transaction-iso.html)」より
+
+つまりここで言う「許容される」は「ANSI/ISO SQL標準としては発生してもよいとされている」という意味です。
+PostgreSQLでは、この2箇所は厳密に働く(発生しない)方向に倒して実装されているようです。
+リードアンコミッティドにおいてダーティリードが発生しないとなると、それは実質、リードコミッティドと同じ分離レベルということになります。
+マニュアルでも以下のように書いてあります。PostgreSQLでは3つの分離レベルしか実装されていないようです。
+> PostgreSQLでは、4つの標準トランザクション分離レベルを全て要求することができます。 しかし、内部的には3つの分離レベルしか実装されていません。 つまり、PostgreSQLのリードアンコミッティドモードは、リードコミッティドのように動作します。
+
+「[13.2. トランザクションの分離](https://www.postgresql.jp/docs/11/transaction-iso.html)」より
 
 ## セットアップ
 
@@ -121,7 +134,7 @@ read committed
 ### 変更方法
 
 では、次に分離レベルを変更する方法です。  
-結論としては、**トランザクションを開始してから**次のコマンドを実行すると変更できます。
+**トランザクションを開始してから**次のコマンドを実行すると変更できます。
 ```
 SET TRANSACTION ISOLATION LEVEL {変更したい分離レベル}
 ```
@@ -143,7 +156,7 @@ example=# SHOW TRANSACTION ISOLATION LEVEL;
 (1 row)
 ```
 
-以降は、調べた経緯なので読み飛ばしてもらって構いません。
+:::details 上記方法に至るまでの経緯(調べたこと)
 
 変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) を使い、次のようにしていするとできるようです。
 ```
@@ -190,11 +203,58 @@ example=# ROLLBACK;
 ROLLBACK
 ```
 
+:::
+
 ## ダーティリード
 
+分離レベルの確認と変更方法もわかったので、各現象を確認していきます。
 
+ダーティリードは、マニュアルでは次のように書かれています。
+> ダーティリード
+> 同時に実行されている他のトランザクションが書き込んで未だコミットしていないデータを読み込んでしまう。
 
+前述した通り、PostgreSQLではこの現象は起きません。(リードアンコミッティド分離レベルでも許容しない方向に実装されているから)
+なのでここでは「起きないこと」を確認します。
 
+まず、psqlから2つのセッションを作ります。本記事では便宜上`client1`、`client2`と呼ぶことにします。
+そして、 リードアンコミッティド(`READ UNCOMMITTED`)分離レベルのトランザクションをそれぞれのセッションで開始します。 分離レベルを確認すると、期待した状態になっていることがわかります。
+client1, client2:
+```
+example=# BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+BEGIN
+example=# SHOW TRANSACTION ISOLATION LEVEL;
+ transaction_isolation
+-----------------------
+ read uncommitted
+(1 row)
+```
+
+client1で名前を変えます(`Alice`->`Bob`)。ただしコミットはまだしません。
+```
+example=# UPDATE users SET name = 'Bob' WHERE id = 1;
+UPDATE 1
+```
+
+client2でテーブルを見てみます。名前には`Alice`のままで変わっていません。分離レベルはリードアンコミッティドであるものの、ダーティリードは起きていないことがわかります。
+```
+example=# SELECT * FROM users;
+ id | name
+----+-------
+  1 | Alice
+(1 row)
+```
+
+client1とclient2はロールバックしておきます。
+```
+example=# ROLLBACK;
+ROLLBACK
+```
+
+## 反復不可能読み取り
+
+## ファントムリード
+
+## 直列化異常
 
 ## 参考資料
 * [O'Reilly Japan - データ指向アプリケーションデザイン](https://www.oreilly.co.jp/books/9784873118703/)
