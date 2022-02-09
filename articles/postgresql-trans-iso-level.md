@@ -395,10 +395,117 @@ ERROR: could not serialize access due to concurrent update
 
 ## 直列化異常
 
+最後に直列化異常を確認します。
+マニュアルの定義は以下のとおりです。
+> 直列化異常
+複数のトランザクションを正常にコミットした結果が、それらのトランザクションを1つずつあらゆる可能な順序で実行する場合とは一貫性がない。
 
-### シリアライザブルでは起きないことを確認する
+まずは、リピータブルリード分離レベルでこの現象の起きることを確認します。
+マニュアルに載っている例に合わせ、別のテーブルを作ります。
+```
+example=# CREATE TABLE mytab (
+example(# class INTEGER NOT NULL,
+example(# value INTEGER NOT NULL
+example(# );
+CREATE TABLE
+```
 
+テスト用のデータを入れます。
+```
+example=# INSERT INTO mytab VALUES (1, 10), (1, 20), (2, 100), (2, 200);
+INSERT 0 4
+example=# SELECT * FROM mytab;
+class | value
+-------+-------
+1 |    10
+1 |    20
+2 |   100
+2 |   200
+```
 
+準備ができたので、client1とclient2で、リピータブルリード分離レベルのトランザクションを2つ用意します。
+```
+example=# BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+BEGIN
+```
+
+client1で、まずclass=**1**の値を計算します。
+```
+example=# SELECT SUM(value) FROM mytab WHERE class = 1;
+ sum
+-----
+  30
+(1 row)
+```
+さらにその結果(`30`)を、class=**2**の行として追加します。
+```
+example=# INSERT INTO mytab VALUES (2, 30);
+INSERT 0 1
+```
+
+ここでclient2へ切り替えます。
+client2では、class=**2**の値を計算します。
+```
+example=# SELECT SUM(value) FROM mytab WHERE class = 2;
+ sum
+-----
+ 300
+(1 row)
+```
+さらにこの結果(`300`)をclass=**1**の行として追加します。
+```
+example=# INSERT INTO mytab VALUES (1, 300);
+INSERT 0 1
+```
+
+ここまでできたらclient1とclient2を順にコミットします。
+どちらも成功しました。
+```
+example=# COMMIT;
+COMMIT
+```
+
+後からコミットした方(この場合はclient2)では、先にコミットした方(client1)が追加した値(class=2, value=30)が、SUMに加味されないままコミットされてしまいました。
+
+### シリアライザブルでの挙動
+
+では、この直列化異常に安全なシリアライザブル分離レベルではどうなるのか確認してみます。
+前述の操作で新たな行が追加されてしまったので、テストデータは元の状態(以下)に戻しておいてください。
+```
+example=# SELECT * FROM mytab;
+class | value
+-------+-------
+1 |    10
+1 |    20
+2 |   100
+2 |   200
+```
+
+client1, client2ともに、シリアライザブル分離レベルでトランザクションを開始します。
+```
+example=# BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN
+```
+
+**(client1のコミットまでの操作は、前述と同じなので割愛します)**
+
+client1をコミットした後、リピータブルリード分離レベルでは成功したclient2のコミットを実行してみます。
+エラーになりました。
+```
+example=# COMMIT;
+ERROR:  could not serialize access due to read/write dependencies among transactions
+DETAIL:  Reason code: Canceled on identification as a pivot, during commit attempt.
+HINT:  The transaction might succeed if retried.
+```
+
+client1, client2どちらを先に実行しても、後から実行したほうの総和の計算が合わなくなってしまうので、このようにエラーとなります。
+ファントムリードの例と同様に、シリアライザブル分離レベルを使う場合はリトライを前提として設計しておく必要がありそうです。
+
+## まとめ
+
+PostgreSQLにおけるトランザクション分離レベルの違いを、実際に手を動かしながら確認しました。
+データ指向アプリケーションデザインの「7章 トランザクション」では、 トランザクションの説明が丁寧に書かれているので、ここを読んでからだとマニュアルで言っていることもだいぶ理解しやすかったです。
+マニュアルは見てるがいまいち頭に入ってこないという方は、一度この章を読んでみてもよいかもしれません。
 
 ## 参考資料
 * [O'Reilly Japan - データ指向アプリケーションデザイン](https://www.oreilly.co.jp/books/9784873118703/)
