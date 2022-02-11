@@ -22,7 +22,7 @@ https://blog.amedama.jp/entry/mysql-innodb-tx-iso-levels
 
 ## トランザクション分離レベル
 
-マニュアルを抜粋しつつ、PostgreSQLにおけるトランザクション分離レベル(以下「分離レベル」)と、各分離レベルで禁止している現象について、簡単に説明します。
+マニュアルを抜粋しつつ、PostgreSQLにおけるトランザクション分離レベルと、各分離レベルで禁止している現象について、簡単に説明します。
 マニュアルはこちらです。
 https://www.postgresql.jp/docs/11/transaction-iso.html
 
@@ -44,8 +44,10 @@ PostgreSQLのマニュアルでは、並行性の問題として次の4つが挙
 * 反復不可能読み取り(Nonrepeatable Read)
 * ファントムリード(Phantom Read)
 * 直列化異常(Serialization Anomaly)
+
+各問題の詳細は、挙動を確認する後述部分で触れます。
  
-それぞれは、各レベルで禁止されてたり許容されてたりします。表にすると次のようになります。  
+これらは、各レベルで禁止されてたり許容されてたりします。表にすると次のようになります。  
 「安全」と書かれている分離レベルでは現象が発生しません。一方、「可能性あり」ものは発生します。  
 
 | 分離レベル       | ダーティリード                  | 反復不可能読み取り | ファントムリード                 | 直列化異常 |
@@ -64,25 +66,27 @@ PostgreSQLのマニュアルでは、並行性の問題として次の4つが挙
 
 ## セットアップ
 
-今回、PostgreSQLとそのクライアントのpsqlはDockerコンテナとして立ち上げました。
+各並行性の問題を確認するために、環境をセットアップします。
+
+PostgreSQLとそのクライアントのpsqlはDockerコンテナとして立ち上げました。  
 その手順はこちらを参照してください。
 https://zenn.dev/bellwood4486/articles/postgresql-psql-docker
 
-[参考にさせていただいた記事](https://blog.amedama.jp/entry/mysql-innodb-tx-iso-levels)と合わせてデータベースとテーブルを作っていきます。
+データベースとテーブルは、 [参考にさせていただいた記事](https://blog.amedama.jp/entry/mysql-innodb-tx-iso-levels) と合わせて作っていきます。
 
 psqlで接続し、最初に`example`というデータベースを作ります。
 ```
 postgres=# CREATE DATABASE example;
 CREATE DATABASE
 ```
-メタコマンドの`\c`(または`\connect`)で、作成したデータベースに接続します。
+メタコマンド`\c`(または`\connect`)で、作成したデータベースに接続します。
 ```
 postgres=# \c example
 You are now connected to database "example" as user "postgres".
 ```
 (メタコマンドの詳細は [マニュアル](https://www.postgresql.jp/document/11/html/app-psql.html) を参照ください)
 
-次に`users`テーブルを作っていきます。
+次に`users`テーブルを作ります。
 ```
 example=# CREATE TABLE users (
 example(# id INTEGER PRIMARY KEY,
@@ -106,7 +110,7 @@ example=# \dt
 example=# INSERT INTO users VALUES (1, 'Alice');
 INSERT 0 1
 ```
-ちゃんとできてますね。
+無事作れました。
 ```
 example=# SELECT * FROM users;
  id | name
@@ -117,14 +121,14 @@ example=# SELECT * FROM users;
 
 ## トランザクション分離レベルの確認および変更方法
 
-テストを始める前に、分離レベルの確認および、それを変更する方法を調べておきます。
+テストを始める前に、トランザクション分離レベルの確認および、それを変更する方法を調べておきます。
 
 ### 確認方法
 
-[`SHOW`コマンド](https://www.postgresql.jp/docs/11/sql-show.html) を使うと、現在の分離レベルを確認できるようです。このコマンドは、実行時のパラメータの現在の設定を表示してくれます。  
+[`SHOW`コマンド](https://www.postgresql.jp/docs/11/sql-show.html) を使うと、現在の分離レベルを確認できます。このコマンドは、実行時のパラメータの現在の設定を表示します。
 [こちら](https://oss-db.jp/dojo/dojo_info_07) を見る限り、`SHOW`コマンドには`TRANSACTION ISOLATION LEVEL`を指定します。
 
-さっそく確認してみましょう。デフォルトの分離レベルである`リードコミッティド(Read committed)`になっていました。
+さっそく確認してみましょう。とくに設定は変えていないのでデフォルトの分離レベルである`リードコミッティド(Read committed)`になっていました。
 ```
 example=# SHOW TRANSACTION ISOLATION LEVEL;
 transaction_isolation
@@ -135,32 +139,27 @@ read committed
 
 ### 変更方法
 
-では、次に分離レベルを変更する方法です。  
-**トランザクションを開始してから**次のコマンドを実行すると変更できます。
+では、次にトランザクション分離レベルを変更する方法です。  
+**トランザクションを開始してから**次のコマンドを実行することで変更できます。
 ```
 SET TRANSACTION ISOLATION LEVEL {変更したい分離レベル}
 ```
 
-分離レベルには次の4つが指定できます。
+変更したい分離レベルには次の4つが指定可能です。
 * `SERIALIZABLE`
 * `REPEATABLE READ`
 * `READ COMMITTED`
 * `READ UNCOMMITTED`
 
-なお、トランザクションの開始と分離レベルの指定は、次のように一つのコマンドにすることもできます。
+なお、トランザクションの開始と分離レベルの指定を、一つのコマンドで実行することもできます。
 ```
 example=# BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 BEGIN
-example=# SHOW TRANSACTION ISOLATION LEVEL;
- transaction_isolation
------------------------
- repeatable read
-(1 row)
 ```
 
 :::details 上記方法に至るまでの経緯(調べたこと)
 
-変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) を使い、次のようにしていするとできるようです。
+変更は、 [`SET TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-set-transaction.html) を使い、次のように指定するとできるようです。
 ```
 SET TRANSACTION ISOLATION LEVEL {変更したい分離レベル}
 ```
@@ -178,19 +177,19 @@ SET
 
 では、トランザクション内なら変更できるかを確認してみます。
 
-まずトランザクションを開始します。([`START TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-start-transaction.html) でもよいですが、今回はタイプの少ない [`BEGIN`コマンド](https://www.postgresql.jp/docs/11/sql-begin.html) の方を使います)
+まずトランザクションを開始します。([`START TRANSACTION`コマンド](https://www.postgresql.jp/docs/11/sql-start-transaction.html) でもよいですが、今回は短く書ける [`BEGIN`コマンド](https://www.postgresql.jp/docs/11/sql-begin.html) の方を使います)
 ```
 example=# BEGIN;
 BEGIN
 ```
 
-ここで再度`SET TRANSACTION`コマンドを実行してみます。今度は警告は出ず終わりました。
+ここで再度`SET TRANSACTION`コマンドを実行してみます。今度は警告が出ませんでした。
 ```
 example=# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 SET
 ```
 
-分離レベルを確認すると、今度は`repeatable read`に変わっています。
+分離レベルを確認すると、`repeatable read`に変わっています。
 ```
 example=# SHOW TRANSACTION ISOLATION LEVEL;
 transaction_isolation
@@ -209,17 +208,19 @@ ROLLBACK
 
 ## ダーティリード
 
-分離レベルの確認と変更方法もわかったので、各現象を確認していきます。
+準備もできたので、4つの並行性の問題を一つずつ確認していきます。
 
-ダーティリードは、マニュアルでは次のように書かれています。
+まず最初はダーティリードです。  
+マニュアルでは次のように書かれています。
 > ダーティリード
 > 同時に実行されている他のトランザクションが書き込んで未だコミットしていないデータを読み込んでしまう。
 
-前述した通り、PostgreSQLではこの現象は起きません。(リードアンコミッティド分離レベルでも許容しない方向に実装されているから)
+前述した通り、PostgreSQLではこの現象は起きません。(リードアンコミッティド分離レベルでも許容しない方向倒してに実装されているから)  
 なのでここでは「起きないこと」を確認します。
 
-まず、psqlから2つのセッションを作ります。本記事では便宜上`client1`、`client2`と呼ぶことにします。
-そして、 リードアンコミッティド(`READ UNCOMMITTED`)分離レベルのトランザクションをそれぞれのセッションで開始します。 分離レベルを確認すると、期待した状態になっていることがわかります。
+まず、psqlからセッションを2つ作ります。本記事では便宜上`client1`、`client2`と呼ぶことにします。  
+セッションを作ったら、リードアンコミッティド(`READ UNCOMMITTED`)分離レベルで、どちらもトランザクションを開始します。 分離レベルを確認すると、期待した状態になっていることがわかります。
+
 client1, client2:
 ```
 example=# BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
