@@ -1,9 +1,9 @@
 ---
 title: "PostgreSQLのトランザクション分離レベルを試す"
-emoji: "🔖"
+emoji: "📝"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["postgresql"]
-published: false
+published: true
 ---
 
 ## はじめに
