@@ -3,7 +3,7 @@ title: "Goで大きなJSONからExcelファイルをメモリに優しく作る"
 emoji: "🗂"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["golang", "json", "excel"]
-published: false
+published: true
 ---
 
 ## はじめに
