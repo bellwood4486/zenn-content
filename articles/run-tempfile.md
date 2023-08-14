@@ -4,6 +4,7 @@ emoji: "📁"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["cloudrun", "golang"]
 published: true
+publication_name: "hrbrain"
 ---
 
 ## はじめに
