@@ -25,7 +25,7 @@ published: false
     * 最終形：gcloudトンネル -> sshセッション -> ローカルポートフォワーディング
     * ボツ：gcloudで各ポートをトンネルする
       * 通信安定化施策：flow-limit-proxy
-* エディタとの関係
+* エディタでWorkstation上のファイルを編集する
   * VSCode Server
   * VSCode
   * Goland
