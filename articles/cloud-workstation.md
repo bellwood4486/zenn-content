@@ -13,7 +13,7 @@ published: false
 * 既存の環境(Tilt環境)
 * Cloud Workstationsとは
 * Tilt環境をCloud Workstationsを用意する
-  * terraformで用意
+  * terraformで用意する
   * メアドの先頭を利用する
   * カスタムイメージを準備する
     * tiltをプリインストールする
@@ -25,6 +25,7 @@ published: false
     * 最終形：gcloudトンネル -> sshセッション -> ローカルポートフォワーディング
     * ボツ：gcloudで各ポートをトンネルする
       * 通信安定化施策：flow-limit-proxy
-* さらなる安定運用に向けて
+* その他
   * ディスク容量対策：起動時クリーンナップ
-* 今後
+  * Golandを使う
+* まとめ
