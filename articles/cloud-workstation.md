@@ -40,8 +40,7 @@ published: false
 ## 開発用のWorkstationを用意する
 
 ###  terraformで用意する
-
-###  メアドの先頭を利用する
+Workstationの名前はメアドの先頭を利用する
 
 ###  カスタムイメージを準備する
 tiltをプリインストールする
@@ -51,20 +50,19 @@ tiltをプリインストールする
 
 ## ローカルPCから繋ぐ(macOS)
 
-### 標準の仕組み
-
-### CORSのプレフライトリクエスト問題
+### 標準の仕組みとプレフライトリクエスト問題
 
 ### 回避策
-最終形：gcloudトンネル -> sshセッション -> ローカルポートフォワーディング
+最終形：gcloudトンネルとsshポートフォワーディングとの組み合わせ
+SSHローカルポートフォワーディング
+トンネル用シェルスクリプトでまとめて一発起動
+
 ボツ：gcloudで各ポートをトンネルする
- 通信安定化施策：flow-limit-proxy
+通信安定化施策：flow-limit-proxy
 
 ## Workstation上のファイルを編集する
 
-### VSCode Server
-
-### VSCode
+### VSCode Server / VSCode
 
 ### Goland
 
