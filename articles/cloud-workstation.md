@@ -10,22 +10,25 @@ published: false
 
 ## メモ
 
-* 既存の環境(Tilt環境)
+* 既存の環境(通称Tilt環境)
 * Cloud Workstationsとは
-* Tilt環境をCloud Workstationsを用意する
+* 開発用のWorkstationを用意する
   * terraformで用意する
   * メアドの先頭を利用する
   * カスタムイメージを準備する
     * tiltをプリインストールする
-* Tilt環境をCloud Workstationsで立ち上げる
-* Macから繋ぐ
+* Tilt環境をWorkstation上で立ち上げる
+* ローカルPCから繋ぐ(macOS)
   * 標準搭載の仕組み
   * CORSのプレフライトリクエスト問題
   * 回避策
     * 最終形：gcloudトンネル -> sshセッション -> ローカルポートフォワーディング
     * ボツ：gcloudで各ポートをトンネルする
       * 通信安定化施策：flow-limit-proxy
+* エディタとの関係
+  * VSCode Server
+  * VSCode
+  * Goland
 * その他
   * ディスク容量対策：起動時クリーンナップ
-  * Golandを使う
 * まとめ
