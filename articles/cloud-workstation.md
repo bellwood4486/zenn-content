@@ -17,6 +17,7 @@ published: false
   * メアドの先頭を利用する
   * カスタムイメージを準備する
     * tiltをプリインストールする
+* Tilt環境をCloud Workstationsで立ち上げる
 * Macから繋ぐ
   * 標準搭載の仕組み
   * CORSのプレフライトリクエスト問題
