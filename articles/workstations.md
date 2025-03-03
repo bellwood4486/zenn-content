@@ -1,8 +1,8 @@
 ---
 title: "ローカルでもリモートでもお好きにどうぞなHRBrainのマイクロサービス開発環境"
-emoji: "👏"
+emoji: "🧑‍💻"
 type: "tech" # tech: 技術記事 / idea: アイデア
-topics: []
+topics: ["tilt", "googlecloud"]
 published: false
 ---
 
@@ -19,7 +19,7 @@ HRBrainでは、エンジニアが自由に使え、壊しても問題のない�
 - なぜ、どのように構築したのか
 - そこから得られた知見
 
-ざっくりまとめると、次のような内容になります。
+ざっくりまとめると次のような内容です。
 - ローカルでもリモートでも開発体験が大きく変わらず、各自が自由に使える環境を整えた。
 - TiltとGoogle Cloud Workstationsという2つの技術をベースに構築した。
 - PCとリモートマシン間の通信について試行錯誤を重ねた。
@@ -176,13 +176,13 @@ Cloud Workstationsでは、「ワークステーション」という単位で�
     https://8080-{ワークステーションの識別子}.cluster-{クラスタの識別子}.cloudworkstations.dev/
     ```
   また、Code-OSSイメージには、**ブラウザで利用可能な [VSCode Server](https://code.visualstudio.com/docs/remote/vscode-server)** が搭載されており、この経路を通じてアクセス可能です。  
-  【ドキュメント】 [ワークステーションで実行されている HTTP サーバーにアクセスする | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/docs/access-http-servers-running-on-workstations?hl=ja)
+  [📝ワークステーションで実行されている HTTP サーバーにアクセスする | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/docs/access-http-servers-running-on-workstations?hl=ja)
 
 - **SSH Server経由**（SSHアクセス）
 
   gcloud CLI の `gcloud workstations` サブコマンドを使用して、SSH接続やSSHトンネルを確立できます。  
   弊社では技術的な制約により、この経路をメインで使用しています。（詳細は後述）  
-  【ドキュメント】 [SSH サポート | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/docs/ssh-support?hl=ja)
+  [📝SSH サポート | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/docs/ssh-support?hl=ja)
 
 ### PCについて
 
@@ -210,7 +210,7 @@ https://times.hrbrain.co.jp/entry/tap2023
 3. **ローカルPCからリモートマシンへの通信を、手間なく安定して確立させる。**
 
 1つ目は、Terraformをベースに、PR1行でリモートマシンの配布・廃棄ができる仕組みを用意しました。現在はPreview段階ですが、今のところ問題は発生していません。
-【ドキュメント】[TerraformによるCloud Workstationsのサポート](https://cloud.google.com/workstations/docs/terraform-support-for-cloud-workstations?hl=ja)
+[📝TerraformによるCloud Workstationsのサポート](https://cloud.google.com/workstations/docs/terraform-support-for-cloud-workstations?hl=ja)
 2つ目は、Tiltさえあればリモートマシン上でもサービスを立ち上げられるため、特に問題はありませんでした。
 3つ目が最も試行錯誤した部分です。ここについては、もう少し詳しく紹介します。
 
@@ -259,9 +259,9 @@ HRBrainでは、以下の3つを実施するためにカスタムイメージを
 - 古いDockerイメージなどによる永続ディスクの容量圧迫を防ぐため、クリーンアップスクリプトを起動時に実行する。
 
 カスタムイメージの作成方法については、公式ドキュメントを参照してください。  
-[【ドキュメント】コンテナ イメージをカスタマイズする | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/docs/customize-container-images?hl=ja)  
+[📝コンテナ イメージをカスタマイズする | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/docs/customize-container-images?hl=ja)  
 また、公式ドキュメントに加えて、以下のハンズオン資料も参考になります。こちらも分かりやすく、おすすめです。  
-[【ドキュメント】Cloud Workstations ハンズオン](https://github.com/GoogleCloudPlatform/gcp-getting-started-lab-jp/blob/master/workstations/tutorial_ws.md)
+[📝Cloud Workstations ハンズオン](https://github.com/GoogleCloudPlatform/gcp-getting-started-lab-jp/blob/master/workstations/tutorial_ws.md)
 
 #### ■自動停止で運用コストを抑える
 
@@ -326,7 +326,7 @@ HRBrainでは、この自動停止の時間を**2時間**に設定していま�
 ワークステーションのマシンタイプや永続ディスクのスペック、利用人数などによって、運用コストは変わります。  
 また、これに加えて管理に関するコストも発生します。  
 公式ページに料金の例や料金体系が掲載されているので、まずはそちらをご確認ください。  
-[【ドキュメント】料金 | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/pricing?hl=ja)
+[📝料金 | Cloud Workstations | Google Cloud](https://cloud.google.com/workstations/pricing?hl=ja)
 
 ## まとめ
 
