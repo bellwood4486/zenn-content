@@ -150,7 +150,6 @@ https://times.hrbrain.co.jp/entry/2021/12/01/tilt
 リモート環境の構成は以下のようになっています。  
 （Google Cloudのネットワークや認証に関する詳細は省略しています。Cloud Workstationsのアーキテクチャについては、[公式ドキュメント](https://cloud.google.com/workstations/docs/architecture?hl=ja)をご参照ください。）
 
-<図を入れる>
 ![HRBrainのリモート開発環境の構成](/images/workstations_structure.png)
 *HRBrainのリモート開発環境の構成*
 
