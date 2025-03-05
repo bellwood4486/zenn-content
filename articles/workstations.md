@@ -1,5 +1,5 @@
 ---
-title: "ローカルでもリモートでもお好きにどうぞなHRBrainのマイクロサービス開発環境"
+title: "ローカル・リモートお好きにどうぞな、HRBrainのマイクロサービス開発環境"
 emoji: "🧑‍💻"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["tilt", "googlecloud"]
@@ -133,7 +133,7 @@ https://times.hrbrain.co.jp/entry/2021/12/01/tilt
 その結果、すべてのサービスを立ち上げるとPCの負荷が高くなり、無視できない問題になってきました。
 
 ![](/images/workstations_slide.png)
-*[出展] [マイクロサービスのローカル開発環境をTiltを使って2年運用して得た知見](https://speakerdeck.com/bellwood4486/maikurosahisunorokarukai-fa-huan-jing-wotiltwoshi-tute2nian-yun-yong-sitede-tazhi-jian)*
+*[出典] [マイクロサービスのローカル開発環境をTiltを使って2年運用して得た知見](https://speakerdeck.com/bellwood4486/maikurosahisunorokarukai-fa-huan-jing-wotiltwoshi-tute2nian-yun-yong-sitede-tazhi-jian)*
 
 **■サービスをすべて立ち上げない方法はないの？** 🤔
 
