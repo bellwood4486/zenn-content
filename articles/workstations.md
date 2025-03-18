@@ -4,6 +4,7 @@ emoji: "🧑‍💻"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["tilt", "googlecloud"]
 published: true
+publication_name: "hrbrain"
 ---
 
 ## はじめに
