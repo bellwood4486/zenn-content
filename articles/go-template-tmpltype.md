@@ -9,15 +9,19 @@ publication_name: "hrbrain"
 
 ## はじめに
 
-こんにちは、HRBrainの鈴木です。この記事は [HRBrain Advent Calendar 2025](https://qiita.com/advent-calendar/2025/hrbrain) の記事です。
+こんにちは、HRBrainの鈴木(善)です。
 
 Goのテンプレートを使った開発で「なんとかならないかな」と思うところがあり、
 生成AIの登場で、AST解析やコード生成といった普段触らない技術も試しやすくなったのも機に、
 趣味プロジェクトとして取り組んでみました。
 
-この記事では、そのツール **tmpltype** を紹介します。
+この記事では、そのツール **tmpltype** を紹介します！💁‍♂️
 
 https://github.com/bellwood4486/tmpltype
+
+なお、こちらは HRBrain Advent Calendar 2025 の19日目の記事です。
+
+https://adventar.org/calendars/12091
 
 ## こんなことありませんか？
 
