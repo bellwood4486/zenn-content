@@ -243,6 +243,6 @@ AST解析やコード生成など、日々の開発ではあまり触れない�
 
 また、子育ての合間のような細切れの時間でも少しずつ進められたのは、個人的に嬉しいポイントでした。
 
-興味があればぜひ試してみてください！
+詳しい使い方は [ドキュメント](https://github.com/bellwood4486/tmpltype/tree/main/docs) 、動くサンプルは [examples](https://github.com/bellwood4486/tmpltype/tree/main/examples) にありますので、 もし興味があればぜひ試してみてください！
 
 https://github.com/bellwood4486/tmpltype
