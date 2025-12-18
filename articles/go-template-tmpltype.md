@@ -23,6 +23,25 @@ https://github.com/bellwood4486/tmpltype
 
 https://adventar.org/calendars/12091
 
+## tmpltypeとは
+
+tmpltype は、Goのテンプレートファイルから型定義とRender関数を自動生成するツールです。
+
+例えば `email.tmpl` に `{{ .User.Name }}` というテンプレートがあると、以下のようなコードが自動生成されます:
+```go
+type EmailUser struct {
+    Name string
+}
+
+func RenderEmail(w io.Writer, params Email) error {
+    // ...
+}
+```
+
+テンプレートをコードから切り離してシンプルなテキストファイルとして管理しやすくなるため、エンジニア以外でも文言の修正やテンプレート一覧の確認が容易になります。
+
+以降では、このツールを作ろうと思った背景、ツールの詳細、設計について紹介していきます！
+
 ## こんなことありませんか？
 
 メール通知だったり、その他Goのテンプレートを使って文面を作りたい場面はよくあると思います。そんなとき、こんなことはないでしょうか。
