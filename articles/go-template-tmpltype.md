@@ -3,7 +3,7 @@ title: "Goのテンプレートをコードから切り離す試み ─ tmpltype
 emoji: "📝"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["go", "codegen", "template"]
-published: false
+published: true
 publication_name: "hrbrain"
 ---
 
